@@ -1,24 +1,32 @@
-import mongoose from "mongoose";
-import dotenv from "dotenv"
-dotenv.config()
 
+import mongoose, {model, Schema} from "mongoose";
 
-export const dbConnection =(): void => {
-    const url: string | undefined = process.env.MONGO_URL;
+mongoose.connect("mongodb://localhost:27017/brainly").then(() => {
+    console.log("Connected to databse");
+}).catch((e) => {
+    console.log("Error while connecting to database")
+    process.exit(1);
+})
 
-    if(!url){
-        console.log("Connection string is not in the environment variables");
-        process.exit(1);
-    }
-    
-    mongoose.connect(url)
-    .then(() => {
-        console.log("Db connected successfully")
-    })
-    .catch((error) => {
-        console.log("Error while connecting to the databse: " , error);
-        process.exit(1);
-    })
-}
+const UserSchema = new Schema({
+    username: {type: String, unique: true},
+    password: String
+})
 
+export const UserModel = model("User", UserSchema);
 
+const ContentSchema = new Schema({
+    title: String,
+    link: String,
+    tags: [{type: mongoose.Types.ObjectId, ref: 'Tag'}],
+    type: String,
+    userId: {type: mongoose.Types.ObjectId, ref: 'User', required: true },
+})
+
+const LinkSchema = new Schema({
+    hash: String,
+    userId: {type: mongoose.Types.ObjectId, ref: 'User', required: true, unique: true },
+})
+
+export const LinkModel = model("Links", LinkSchema);
+export const ContentModel = model("Content", ContentSchema);
